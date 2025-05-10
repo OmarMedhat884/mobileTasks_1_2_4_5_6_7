@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:projects/favorite/favorite_model.dart';
 import 'package:provider/provider.dart';
-import 'home/home_screen/home_page.dart';
+import 'add_item/item_model.dart';
+import 'dashboard/dashboard_screen.dart';
+import 'dashboard/nav_bar.dart';
 import 'profile/user_model.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => UserModel(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserModel()),
+        ChangeNotifierProvider(create: (_) => ItemModel()),
+        ChangeNotifierProvider(create: (_) => FavoriteModel()),
+
+      ],
       child: const MyApp(),
     ),
   );
@@ -22,7 +30,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
       ),
-      home: const MyHomePage(),
+      home: const NavBar(),
     );
   }
 }

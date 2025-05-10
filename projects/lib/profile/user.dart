@@ -9,5 +9,5 @@ class User {
 
   String name;
   String bio;
-  File? image; // ← دي بقت nullable
+  File? image;
 }
