@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'item.dart';
 
 class ItemModel extends ChangeNotifier {
@@ -9,6 +11,10 @@ class ItemModel extends ChangeNotifier {
   List<File> selectedImages = [];
 
   List<Item> get items => _items;
+
+  ItemModel() {
+    _loadItems();
+  }
 
   void addItem({
     required List<File> itemImages,
@@ -22,11 +28,13 @@ class ItemModel extends ChangeNotifier {
       body: body,
       favorite: favorite,
     ));
+    _saveItems();
     notifyListeners();
   }
 
   void removeItem(int index) {
     _items.removeAt(index);
+    _saveItems();
     notifyListeners();
   }
 
@@ -49,5 +57,26 @@ class ItemModel extends ChangeNotifier {
   void selectItem(Item item) {
     _selectedItem = item;
     notifyListeners();
+  }
+
+
+
+  Future<void> _saveItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> itemJsonList = _items.map((item) => jsonEncode(item.toJson())).toList();
+    await prefs.setStringList('dashboard_items', itemJsonList);
+  }
+
+  Future<void> _loadItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String>? itemJsonList = prefs.getStringList('dashboard_items');
+    if (itemJsonList != null) {
+      _items.clear();
+      for (String itemJson in itemJsonList) {
+        Map<String, dynamic> jsonMap = jsonDecode(itemJson);
+        _items.add(Item.fromJson(jsonMap));
+      }
+      notifyListeners();
+    }
   }
 }

@@ -1,14 +1,9 @@
 import 'dart:io';
-
 class Item {
-  @override
-  bool operator ==(Object other) {
-    return other is Item && other.title == title;
-  }
-
-  @override
-  // TODO: implement hashCode
-  int get hashCode => title.hashCode;
+  List<File> images;
+  String title;
+  String body;
+  bool favorite;
 
   Item({
     required this.images,
@@ -17,8 +12,21 @@ class Item {
     required this.favorite,
   });
 
-  List<File> images;
-  String title;
-  String body;
-  bool favorite;
+  Map<String, dynamic> toJson() {
+    return {
+      'images': images.map((file) => file.path).toList(),
+      'title': title,
+      'body': body,
+      'favorite': favorite,
+    };
+  }
+
+  factory Item.fromJson(Map<String, dynamic> json) {
+    return Item(
+      images: (json['images'] as List<dynamic>).map((path) => File(path)).toList(),
+      title: json['title'],
+      body: json['body'],
+      favorite: json['favorite'],
+    );
+  }
 }

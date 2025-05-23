@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:projects/profile/user_model.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../auth/login_screen.dart';
+import '../../main.dart';
 import '../profile_widget/options.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -12,6 +15,12 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final _nameController = TextEditingController();
+  final _dobController = TextEditingController();
+  final _bioController = TextEditingController();
+
+  bool isEditing = false;
+
   void _showImagePickerOptions(UserModel userModel) {
     showModalBottomSheet(
       context: context,
@@ -62,16 +71,79 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', false);
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => LoginScreen()),
+          (route) => false,
+    );
+  }
+
+  Future<void> _loadProfileData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _nameController.text = prefs.getString('name') ?? '';
+      _dobController.text = prefs.getString('dob') ?? '';
+      _bioController.text = prefs.getString('bio') ?? '';
+    });
+  }
+
+  Future<void> _saveProfileData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('name', _nameController.text);
+    await prefs.setString('dob', _dobController.text);
+    await prefs.setString('bio', _bioController.text);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Profile updated")),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Profile")),
+      appBar: AppBar(
+        title: const Text("Profile"),
+        actions: [
+          IconButton(
+            icon: Icon(isEditing ? Icons.close : Icons.edit),
+            onPressed: () {
+              setState(() {
+                isEditing = !isEditing;
+              });
+            },
+          ),
+          IconButton(
+            icon: Icon(Theme.of(context).brightness == Brightness.dark
+                ? Icons.dark_mode
+                : Icons.light_mode),
+            onPressed: () {
+              final brightness = Theme.of(context).brightness;
+              final newBrightness =
+              brightness == Brightness.dark ? ThemeMode.light : ThemeMode.dark;
+
+              MyApp.of(context).changeTheme(newBrightness);
+            },
+          ),
+        ],
+      ),
+
       body: Consumer<UserModel>(
         builder: (context, userModel, child) {
-          return Center(
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                const SizedBox(height: 30),
+                const SizedBox(height: 20),
                 Stack(
                   alignment: Alignment.bottomRight,
                   children: [
@@ -82,11 +154,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ? FileImage(userModel.user!.image!)
                           : null,
                       child: userModel.user?.image == null
-                          ? const Icon(
-                        Icons.person,
-                        size: 70,
-                        color: Colors.white38,
-                      )
+                          ? const Icon(Icons.person, size: 70, color: Colors.white38)
                           : null,
                     ),
                     Positioned(
@@ -105,15 +173,64 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
                 const SizedBox(height: 30),
-                const ListTile(
-                  leading: Icon(Icons.person),
-                  title: Text("Name"),
-                  subtitle: Text("Omar Medhat"),
+
+                // NAME
+                isEditing
+                    ? TextField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                )
+                    : ListTile(
+                  leading: const Icon(Icons.person),
+                  title: const Text('Name'),
+                  subtitle: Text(_nameController.text),
                 ),
-                const ListTile(
-                  leading: Icon(Icons.info),
-                  title: Text("Bio"),
-                  subtitle: Text("Code. Sleep. Eat. Repeat"),
+
+                // DATE OF BIRTH
+                isEditing
+                    ? TextField(
+                  controller: _dobController,
+                  decoration: const InputDecoration(labelText: 'Date of Birth'),
+                )
+                    : ListTile(
+                  leading: const Icon(Icons.calendar_today),
+                  title: const Text('Date of Birth'),
+                  subtitle: Text(_dobController.text),
+                ),
+
+                // BIO
+                isEditing
+                    ? TextField(
+                  controller: _bioController,
+                  decoration: const InputDecoration(labelText: 'Bio'),
+                )
+                    : ListTile(
+                  leading: const Icon(Icons.info),
+                  title: const Text('Bio'),
+                  subtitle: Text(_bioController.text),
+                ),
+
+                const SizedBox(height: 20),
+                if (isEditing)
+                  ElevatedButton(
+                    onPressed: () async {
+                      await _saveProfileData();
+                      setState(() {
+                        isEditing = false;
+                      });
+                    },
+                    child: const Text("Save"),
+                  ),
+
+                const SizedBox(height: 30),
+                ElevatedButton.icon(
+                  onPressed: _logout,
+                  icon: const Icon(Icons.logout),
+                  label: const Text("Log Out"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ],
             ),

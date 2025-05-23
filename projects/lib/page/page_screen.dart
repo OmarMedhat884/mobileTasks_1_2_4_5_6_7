@@ -16,10 +16,34 @@ class PageScreen extends StatelessWidget {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            const Text(
-              "Omar Medhat Mohamed 20230469240.",
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "عمر مدحت محمد 20230469240",
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "حسن فتحي علي 20230537034",
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "كريم كمال حسن 20230469244",
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "يوسف صلاح محمد 20230469266",
+                  style: TextStyle(fontSize: 16),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "سيف الدين وائل إبراهيم 20230469228",
+                  style: TextStyle(fontSize: 16),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             const Divider(thickness: 1),
